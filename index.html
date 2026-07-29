@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlameCloud - Blazing Fast Hosting</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Page Transition Animations */
+        .page-section {
+            display: none;
+            min-height: 90vh;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: slideUpFade 0.7s ease-out forwards;
+        }
+
+        @keyframes slideUpFade {
+            from {
+                opacity: 0;
+                transform: translateY(2rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* FAQ Accordion Transitions */
+        .faq-content {
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        
+        .faq-item.active .faq-content {
+            max-height: 200px;
+            opacity: 1;
+            padding-bottom: 1.25rem; /* pb-5 */
+        }
+
+        .faq-icon {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Custom Scrollbar for Dropdown menu */
+        .mobile-menu-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .mobile-menu-scroll::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100 selection:bg-orange-500 selection:text-white transition-colors duration-300">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo -->
+                <button onclick="navigate('home')" class="flex items-center gap-3 group focus:outline-none">
+                    <img src="flamecloud_square.jpg" alt="FlameCloud" class="w-10 h-10 object-contain rounded-lg group-hover:scale-105 transition-transform drop-shadow-md bg-white">
+                    <span class="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-600">
+                        FlameCloud
+                    </span>
+                </button>
+
+                <!-- Quick Actions & Controls -->
+                <div class="flex items-center gap-2 sm:gap-3">
+                    
+                    <!-- Theme Toggle -->
+                    <button onclick="toggleTheme()" class="p-2 text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 transition shadow-sm focus:outline-none" aria-label="Toggle Theme">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    </button>
+
+                    <div class="hidden lg:flex items-center gap-2 mr-2">
+                        <a href="https://freegp.flamecloud.bond/" target="_blank" rel="noreferrer" class="px-4 py-2 text-sm font-bold bg-white dark:bg-transparent border border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition shadow-sm">
+                            Free Panel
+                        </a>
+                        <a href="https://gp.flamecloud.bond/" target="_blank" rel="noreferrer" class="px-4 py-2 text-sm font-bold bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition shadow-sm">
+                            Paid Panel
+                        </a>
+                        <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="px-4 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition flex items-center gap-2 shadow-md ml-1">
+                            <i data-lucide="message-square" class="w-[18px] h-[18px]"></i> Discord
+                        </a>
+                    </div>
+                    
+                    <!-- Mobile Menu Toggle -->
+                    <button id="menu-toggle" onclick="toggleMenu()" class="p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 transition shadow-sm focus:outline-none" aria-label="Toggle Menu">
+                        <i id="menu-icon" data-lucide="menu" class="w-6 h-6"></i>
+                        <i id="close-icon" data-lucide="x" class="w-6 h-6 hidden"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Universal Dropdown Menu -->
+        <div id="mobile-menu" class="absolute top-20 left-0 w-full max-h-[85vh] overflow-y-auto mobile-menu-scroll bg-white/95 dark:bg-gray-900/95 backdrop-blur-2xl border-b border-gray-200 dark:border-gray-800 shadow-2xl transition-all duration-300 hidden opacity-0 -translate-y-2">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-2">
+                <!-- Menu Items generated dynamically in JS -->
+                <div id="nav-links-container" class="flex flex-col gap-2"></div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-col lg:hidden gap-3">
+                    <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="w-full text-center px-4 py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-md">Join Discord</a>
+                    <a href="https://gp.flamecloud.bond/" target="_blank" rel="noreferrer" class="w-full text-center px-4 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold rounded-xl shadow-md">Access Paid Panel</a>
+                    <a href="https://freegp.flamecloud.bond/" target="_blank" rel="noreferrer" class="w-full text-center px-4 py-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 font-bold rounded-xl">Access Free Panel</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="pt-20">
+        
+        <!-- HOME PAGE -->
+        <div id="home" class="page-section active">
+            <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex items-center justify-center">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/20 dark:bg-orange-600/20 blur-[120px] rounded-full pointer-events-none"></div>
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-300 dark:border-green-500/20 text-sm font-medium mb-8 shadow-sm">
+                        <i data-lucide="zap" class="w-4 h-4"></i> 99.2% Guaranteed Uptime
+                    </div>
+                    <h1 class="text-5xl sm:text-6xl lg:text-8xl font-extrabold tracking-tight mb-8 text-gray-900 dark:text-white leading-tight">
+                        Blazing Fast Hosting <br/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-red-500 to-yellow-500">
+                            Without the Burn.
+                        </span>
+                    </h1>
+                    <p class="mt-6 text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-12">
+                        High-performance Minecraft, Web apps, and Bot hosting built for communities of all sizes. Reliable, affordable, and powerful.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <button onclick="navigate('services')" class="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30">
+                            View Services <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                        <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="px-8 py-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-xl font-bold text-lg transition flex items-center justify-center gap-2 shadow-sm">
+                            Join Discord
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SERVICES PAGE -->
+        <div id="services" class="page-section">
+            <section class="pt-32 pb-20 bg-gray-50 dark:bg-gray-900 h-full">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Our Services</h2>
+                        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Everything you need to get your project online.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- BOT HOSTING PAGE -->
+        <div id="bot-hosting" class="page-section pb-24">
+            <section class="relative pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-500/10 dark:bg-purple-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-3xl mb-8 border border-purple-100 dark:border-purple-500/20">
+                        <i data-lucide="cpu" class="w-10 h-10"></i>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 text-gray-900 dark:text-white">
+                        Curated <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-indigo-500">Bot Hosting</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+                        Designed for reliable bot hosting with low latency resources. High speed storage, curated for Discord Bots (Telegram Bots coming soon).
+                    </p>
+                    <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="inline-flex px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-lg transition items-center justify-center shadow-lg">
+                        Host Your Bot Now
+                    </a>
+                </div>
+            </section>
+
+            <section class="py-20 relative">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="bot-plans-grid">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="mt-16 max-w-4xl mx-auto bg-white dark:bg-gray-900/50 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm">
+                        <h3 class="text-xl font-bold mb-6 text-center text-gray-900 dark:text-white">
+                            Included with Every Bot Plan
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> Intel Xeon Series Processors</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> High-Speed NVMe SSD Storage</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> DDR4 Memory</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> 5 Gbps Network Connectivity</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> Full Root Access</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> Support for Python & Node.js</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> Instant Deployment</div>
+                            <div class="flex items-center gap-3"><i data-lucide="check-circle-2" class="text-purple-500 w-5 h-5"></i> Telegram Bots (Coming Soon)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- WEB HOSTING PAGE -->
+        <div id="web-hosting" class="page-section pb-24">
+            <section class="relative pt-32 pb-16 lg:pt-40 lg:pb-20 overflow-hidden border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 dark:bg-blue-600/10 blur-[100px] rounded-full pointer-events-none"></div>
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-3xl mb-8 border border-blue-100 dark:border-blue-500/20">
+                        <i data-lucide="globe" class="w-10 h-10"></i>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 text-gray-900 dark:text-white">
+                        Next-Gen <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">Web Hosting</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+                        Deploy your websites, frontend frameworks, and fullstack applications with global edge performance and bulletproof reliability.
+                    </p>
+                    <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="inline-flex px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-lg transition items-center justify-center shadow-lg">
+                        Pre-Order via Discord
+                    </a>
+                </div>
+            </section>
+
+            <section class="py-20 relative">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="web-plans-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- MINECRAFT PAGE -->
+        <div id="minecraft" class="page-section pb-24">
+            <section class="pt-32 pb-24 relative">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="text-center mb-16">
+                        <h2 class="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Minecraft Hosting Plans</h2>
+                        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Scalable power for any server size. Pick the plan that fits your community.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="minecraft-plans-grid">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="mt-16 max-w-4xl mx-auto bg-white dark:bg-gray-900/50 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm text-center">
+                        <h3 class="text-xl font-bold mb-6 text-gray-900 dark:text-white">
+                            Why Choose FlameCloud Minecraft Hosting?
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-medium text-gray-700 dark:text-gray-300 text-left w-fit mx-auto">
+                            <div class="flex items-center gap-3"><i data-lucide="globe-2" class="text-orange-500 w-5 h-5"></i> Global locations available</div>
+                            <div class="flex items-center gap-3"><i data-lucide="zap" class="text-orange-500 w-5 h-5"></i> Low-latency performance</div>
+                            <div class="flex items-center gap-3"><i data-lucide="layout-dashboard" class="text-orange-500 w-5 h-5"></i> Easy-to-use control panel</div>
+                            <div class="flex items-center gap-3"><i data-lucide="clock" class="text-orange-500 w-5 h-5"></i> Automatic backups every 5 hours</div>
+                            <div class="flex items-center gap-3"><i data-lucide="headphones" class="text-orange-500 w-5 h-5"></i> Friendly 24/7 support</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- REWARDS PAGE -->
+        <div id="rewards" class="page-section">
+            <section class="pt-32 pb-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 border-y border-gray-200 dark:border-gray-800 h-full">
+                <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-3xl overflow-hidden shadow-xl dark:shadow-2xl relative">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+                        
+                        <div class="p-8 md:p-12 relative z-10">
+                            <div class="flex flex-col md:flex-row gap-12 items-center">
+                                <div class="flex-1 text-center md:text-left">
+                                    <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-2xl mb-8 shadow-inner">
+                                        <i data-lucide="gift" class="w-8 h-8"></i>
+                                    </div>
+                                    <h2 class="text-3xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Minecraft Server <br/>Free Tier</h2>
+                                    <p class="text-gray-600 dark:text-gray-400 text-lg mb-8 leading-relaxed">
+                                        Invite friends to our Discord and unlock powerful free server upgrades for your community!
+                                    </p>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="bg-gray-50 dark:bg-gray-950 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 flex items-center gap-6 shadow-sm">
+                                            <div class="text-5xl">🥉</div>
+                                            <div>
+                                                <h4 class="font-bold text-xl text-gray-900 dark:text-white mb-1">10 Invites Tier</h4>
+                                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">8 GB RAM • 150% CPU • 12 GB NVMe</p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-yellow-50 dark:bg-gray-950 p-6 rounded-2xl border border-yellow-200 dark:border-yellow-500/20 flex items-center gap-6 relative overflow-hidden shadow-sm">
+                                            <div class="absolute inset-0 bg-yellow-400/5 dark:bg-yellow-500/5"></div>
+                                            <div class="text-5xl relative z-10">🥇</div>
+                                            <div class="relative z-10">
+                                                <h4 class="font-bold text-xl text-yellow-700 dark:text-yellow-500 mb-1">17 Invites Tier</h4>
+                                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">16 GB RAM • 300% CPU • 45 GB NVMe</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1 w-full bg-gray-50 dark:bg-gray-950 p-8 md:p-10 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-inner">
+                                    <h3 class="font-bold text-2xl mb-6 flex items-center gap-3 text-gray-900 dark:text-white">
+                                        <i data-lucide="alert-triangle" class="text-red-500 w-6 h-6"></i>
+                                        Rules & Notes
+                                    </h3>
+                                    <ul class="space-y-4 text-base font-medium text-gray-700 dark:text-gray-300">
+                                        <li class="flex items-start gap-3">
+                                            <div class="mt-1.5 w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></div>
+                                            Must Invite Real Members.
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <div class="mt-1.5 w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></div>
+                                            Must Send DM Screenshot Of Invited people.
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <div class="mt-1.5 w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></div>
+                                            No j2j & j4j allowed.
+                                        </li>
+                                        <li class="flex items-start gap-3">
+                                            <div class="mt-1.5 w-2 h-2 rounded-full bg-orange-500 flex-shrink-0"></div>
+                                            Don't mass ping staffs. Must wait after creating ticket.
+                                        </li>
+                                    </ul>
+                                    
+                                    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 space-y-3">
+                                        <p class="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2 bg-red-50 dark:bg-red-500/10 p-3 rounded-lg">
+                                            <i data-lucide="x" class="w-4 h-4"></i> -1 invite for each useless ping to staffs
+                                        </p>
+                                        <p class="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2 bg-red-50 dark:bg-red-500/10 p-3 rounded-lg">
+                                            <i data-lucide="x" class="w-4 h-4"></i> -1 invite if any alt account is found
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- INFRASTRUCTURE PAGE -->
+        <div id="infrastructure" class="page-section pb-24">
+            <section class="pt-32 pb-24 relative h-full">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Our Infrastructure</h2>
+                        <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">Transparent look into the hardware that powers FlameCloud.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10" id="infra-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- FAQ PAGE -->
+        <div id="faq" class="page-section pb-24">
+            <section class="pt-32 pb-24 relative h-full">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="text-center mb-16">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-2xl mb-6 shadow-sm">
+                            <i data-lucide="help-circle" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Frequently Asked Questions</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">Got questions? We've got answers.</p>
+                    </div>
+                    <div class="space-y-4" id="faq-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TEAM PAGE -->
+        <div id="team" class="page-section">
+            <section class="pt-32 pb-20 h-full">
+                <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="text-center mb-16">
+                        <h2 class="text-4xl font-extrabold mb-4 text-gray-900 dark:text-white">Meet The Founders</h2>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">The minds behind FlameCloud.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <a href="https://blazeverse.vercel.app/" target="_blank" rel="noreferrer" class="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-200 dark:border-gray-800 hover:border-orange-500 dark:hover:border-orange-500 transition group flex flex-col items-center text-center shadow-sm hover:shadow-xl">
+                            <div class="w-32 h-32 mb-6 rounded-full overflow-hidden border-4 border-gray-100 dark:border-gray-800 shadow-inner group-hover:border-orange-500/50 transition">
+                                <img src="blazeverse.png" alt="Blazeverse" class="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold group-hover:text-orange-500 text-gray-900 dark:text-white transition mb-1">Blazeverse</h3>
+                                <p class="text-gray-500 dark:text-gray-400 font-medium">Founder</p>
+                                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-950 rounded-full text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white border border-gray-200 dark:border-gray-800">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i> Visit Portfolio
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <a href="https://wl2sa.bond/" target="_blank" rel="noreferrer" class="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-200 dark:border-gray-800 hover:border-blue-500 dark:hover:border-blue-500 transition group flex flex-col items-center text-center shadow-sm hover:shadow-xl">
+                            <div class="w-32 h-32 mb-6 rounded-full overflow-hidden border-4 border-gray-100 dark:border-gray-800 shadow-inner group-hover:border-blue-500/50 transition">
+                                <img src="wl2sa.png" alt="WL2SA" class="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold group-hover:text-blue-500 text-gray-900 dark:text-white transition mb-1">WL2SA</h3>
+                                <p class="text-gray-500 dark:text-gray-400 font-medium">Co-Founder</p>
+                                <div class="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-950 rounded-full text-sm font-semibold text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white border border-gray-200 dark:border-gray-800">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i> Visit Portfolio
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- TOS PAGE -->
+        <div id="tos" class="page-section pb-24">
+            <section class="pt-32 pb-24 relative h-full">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="mb-12 border-b border-gray-200 dark:border-gray-800 pb-10">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 text-sm font-bold mb-6 uppercase tracking-wider">
+                            <i data-lucide="file-text" class="w-4 h-4"></i> Legal
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Terms of Service</h2>
+                        <p class="text-gray-600 dark:text-gray-400 font-medium">Last updated: <span id="tos-date"></span></p>
+                    </div>
+                    
+                    <div class="space-y-10 text-gray-700 dark:text-gray-300">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">1. Acceptance of Terms</h3>
+                            <p class="leading-relaxed">By accessing and using FlameCloud's services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by these terms, please do not use our services.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">2. Description of Service</h3>
+                            <p class="leading-relaxed">FlameCloud provides web hosting, Minecraft server hosting, bot hosting, and virtual private servers (VPS). We reserve the right to modify, suspend, or discontinue any part of the service at any time without prior notice.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">3. Fair Use & Abuse</h3>
+                            <p class="leading-relaxed">Resources provided on our platforms are subject to fair use. Any attempts to abuse the system—including but not limited to launching DDoS attacks, crypto-mining, hosting illegal/pirated content, or intentionally bypassing resource limits—will result in immediate termination of your account without notice or refund.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">4. Refunds and Cancellations</h3>
+                            <p class="leading-relaxed">All paid services come with a standard 7-day money-back guarantee for initial purchases, unless stated otherwise. Renewals, custom domains, and dedicated VPS products may be exempt from refunds. To request a cancellation or refund, please open a billing ticket on our Discord server.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- PRIVACY PAGE -->
+        <div id="privacy" class="page-section pb-24">
+            <section class="pt-32 pb-24 relative h-full">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div class="mb-12 border-b border-gray-200 dark:border-gray-800 pb-10">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 text-sm font-bold mb-6 uppercase tracking-wider">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i> Privacy
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Privacy Policy</h2>
+                        <p class="text-gray-600 dark:text-gray-400 font-medium">Last updated: <span id="privacy-date"></span></p>
+                    </div>
+                    
+                    <div class="space-y-10 text-gray-700 dark:text-gray-300">
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">1. Information We Collect</h3>
+                            <p class="leading-relaxed">We collect information you provide directly to us when you register for an account, subscribe to our services, or communicate with us via Discord. This may include your Discord ID, email address, usernames, and necessary payment information to process your orders.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">2. How We Use Your Information</h3>
+                            <p class="leading-relaxed">We use the information we collect to provision and maintain your hosting services, process transactions, send critical technical notices, and respond to your support queries effectively.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">3. Data Security</h3>
+                            <p class="leading-relaxed">We implement appropriate technical and organizational security measures to protect your data against unauthorized access, alteration, disclosure, or destruction. We do not store full credit card numbers on our own servers.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">4. Sharing of Information</h3>
+                            <p class="leading-relaxed">We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties. This does not include trusted third parties who assist us in operating our website or servicing you (such as payment gateways), so long as those parties agree to keep this information confidential.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-900 pt-16 pb-8 transition-colors duration-300 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 mb-10">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+                    <img src="flamecloud_banner.jpg" alt="FlameCloud" class="w-8 h-8 object-contain rounded drop-shadow bg-white">
+                    <span class="text-xl font-extrabold text-gray-900 dark:text-white">FlameCloud</span>
+                </div>
+                
+                <div class="flex flex-wrap justify-center gap-4 sm:gap-6 text-sm font-bold">
+                    <button onclick="navigate('tos')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition shadow-sm border border-gray-200 dark:border-gray-800">
+                        <i data-lucide="file-text" class="w-4 h-4"></i> Terms of Service
+                    </button>
+                    <button onclick="navigate('privacy')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition shadow-sm border border-gray-200 dark:border-gray-800">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> Privacy Policy
+                    </button>
+                    <button onclick="navigate('faq')" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition shadow-sm border border-gray-200 dark:border-gray-800">
+                        <i data-lucide="help-circle" class="w-4 h-4"></i> FAQ
+                    </button>
+                    <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 transition shadow-sm border border-indigo-200 dark:border-indigo-500/20">
+                        <i data-lucide="box" class="w-4 h-4"></i> Discord
+                    </a>
+                </div>
+            </div>
+            
+            <div class="pt-8 border-t border-gray-200 dark:border-gray-900 text-center text-sm font-medium text-gray-500 dark:text-gray-600">
+                &copy; <span id="current-year"></span> FlameCloud Hosting. All rights reserved. <br/>
+                <span class="text-gray-400 dark:text-gray-700 text-xs mt-3 inline-block uppercase tracking-widest">"Ignite your servers, not your wallet."</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data and Logic -->
+    <script>
+        // Data Configuration
+        const NAV_ITEMS = [
+            { id: 'home', label: 'Home' },
+            { id: 'services', label: 'Our Services' },
+            { id: 'web-hosting', label: 'Web Hosting' },
+            { id: 'bot-hosting', label: 'Bot Hosting' },
+            { id: 'minecraft', label: 'Minecraft Plans' },
+            { id: 'rewards', label: 'Minecraft Server Free Tier' },
+            { id: 'infrastructure', label: 'Infrastructure' },
+            { id: 'faq', label: 'FAQ' },
+            { id: 'team', label: 'Team' }
+        ];
+
+        const SERVICES = [
+            { id: 'minecraft', title: 'Minecraft Hosting', icon: 'gamepad-2', status: 'Pre-order', desc: 'High-performance servers for your community.' },
+            { id: 'bot-hosting', title: 'Bot Hosting', icon: 'cpu', status: 'Available Now', desc: 'Low latency, high speed storage curated for Discord Bots.' },
+            { id: 'web-hosting', title: 'Web Hosting', icon: 'globe', status: 'Available', desc: 'Static pages, React, and modern frontend frameworks available now. (Backend coming soon)' },
+            { id: 'vps', title: 'VPS Hosting', icon: 'server', status: 'Coming Soon', desc: 'Dedicated resources for complete control over your projects.' },
+            { id: 'domains', title: 'Domains', icon: 'box', status: 'Coming Soon', desc: 'Register your custom domain names easily.' },
+        ];
+
+        const MINE_PLANS = [
+            { name: 'Starter Plan', price: '₹49', color: 'bg-green-500', ram: '2 GB', cpu: '100% CPU', ssd: '10 GB NVMe', tag: 'Full Panel Access', desc: '24/7 Uptime & DDoS Protection' },
+            { name: 'Growth Plan', price: '₹99', color: 'bg-blue-500', ram: '4 GB', cpu: '150% CPU', ssd: '30 GB NVMe', tag: 'Plugin Support', desc: 'Free Auto Backups (Every 5 Hours)' },
+            { name: 'Pro Plan', price: '₹149', color: 'bg-purple-500', ram: '6 GB', cpu: '230% CPU', ssd: '50 GB NVMe', tag: 'Plugin & Mod Support', desc: 'Free Automatic Backups' },
+            { name: 'Advanced Plan', price: '₹229', color: 'bg-orange-500', ram: '12 GB', cpu: '300% CPU', ssd: '60 GB NVMe', tag: 'Heavy Modpack Support', desc: 'Priority Resources & Free Backups' },
+            { name: 'Ultra Plan', price: '₹900', color: 'bg-red-500', ram: '32 GB', cpu: '800% CPU', ssd: '100 GB NVMe', tag: 'Advanced Modpack Support', desc: 'Highest Priority, Free Backups (24H)' }
+        ];
+
+        const BOT_PLANS = [
+            { name: 'Essential', price: '₹79', color: 'bg-indigo-400', ram: '4 GB DDR4', cpu: '2 vCPU', ssd: '50 GB NVMe' },
+            { name: 'Business', price: '₹149', color: 'bg-indigo-500', ram: '8 GB DDR4', cpu: '4 vCPU', ssd: '100 GB NVMe' },
+            { name: 'Professional', price: '₹249', color: 'bg-indigo-600', ram: '12 GB DDR4', cpu: '6 vCPU', ssd: '150 GB NVMe' },
+            { name: 'Enterprise', price: '₹329', color: 'bg-purple-600', ram: '16 GB DDR4', cpu: '8 vCPU', ssd: '200 GB NVMe' }
+        ];
+
+        const WEB_PLANS = [
+            { name: 'Static Hosting', price: '₹29', color: 'bg-blue-500', status: 'Available Now', features: ['HTML, CSS, JavaScript', 'Lightning Fast CDN', 'Free SSL Certificate', 'Custom Domain Support'], desc: 'Perfect for portfolios, landing pages, and simple sites.' },
+            { name: 'Frontend Apps', price: '₹79', color: 'bg-orange-500', status: 'Pre-Order', features: ['React, Vue, Angular', 'Automated Deployments', 'Free SSL Certificate', 'Custom Domain Support'], desc: 'Optimized for modern single-page web applications.' },
+            { name: 'Fullstack Backend', price: '₹149', color: 'bg-red-500', status: 'Pre-Order', features: ['Node.js, Python, Go', 'Database Integration', 'Cron Jobs & Workers', 'Dedicated Resources'], desc: 'Complete power for backend APIs and complex applications.' }
+        ];
+
+        const INFRA_DATA = [
+            { title: "Free Panel Nodes", status: "Active", img: "https://placehold.co/600x400/1f2937/ffffff?text=Free+Panel+Node", desc: "Our reliable free panel infrastructure serving the community." },
+            { title: "Paid Panel Nodes", status: "Active", img: "https://placehold.co/600x400/ea580c/ffffff?text=Paid+Panel+Active", desc: "Premium dedicated panel nodes for maximum performance." },
+            { title: "Free Minecraft Node", status: "Active VPS 1", img: "https://placehold.co/600x400/22c55e/ffffff?text=Free+Minecraft+VPS", desc: "Dedicated high-performance VPS for free Minecraft server hosting." },
+            { title: "Premium Bot Node", status: "Active VPS 2", img: "https://placehold.co/600x400/3b82f6/ffffff?text=Premium+Bot+VPS", desc: "Always-online premium infrastructure keeping Discord bots running 24/7." },
+            { title: "Premium Web Node", status: "Active VPS 3", img: "https://placehold.co/600x400/a855f7/ffffff?text=Premium+Web+VPS", desc: "Fast and reliable paid hosting for web applications and static sites." },
+            { title: "Paid Infrastructure", status: "Active AMD EPYC", img: "germanium.jpg", desc: "Enterprise-grade hardware (AMD EPYC 7R13) dedicated entirely for our paid plans." },
+        ];
+
+        const FAQ_DATA = [
+            { q: "How do I claim the free Minecraft tier?", a: "Head over to the 'Minecraft Server Free Tier' page to see the invite requirements, then open a ticket in our Discord." },
+            { q: "Is Bot and Web Hosting free?", a: "No, Bot and Web hosting run on our premium, high-performance nodes to guarantee 99.2% uptime and are exclusively paid services." },
+            { q: "What payment methods do you accept?", a: "Currently, all transactions are handled securely via our Discord ticket system. We accept UPI, Cards, and other major payment methods." },
+            { q: "Do you offer DDoS protection?", a: "Yes, all our nodes come with baseline enterprise DDoS protection to keep your services online during attacks." }
+        ];
+
+        // Global State
+        let currentPage = 'home';
+        let isDarkMode = true;
+        let isMenuOpen = false;
+
+        // --- Render Functions ---
+
+        function renderNavLinks() {
+            const container = document.getElementById('nav-links-container');
+            container.innerHTML = NAV_ITEMS.map(item => `
+                <button onclick="navigate('${item.id}')" id="nav-btn-${item.id}" class="nav-btn text-left px-5 py-4 rounded-2xl transition-all duration-200 ${item.id === currentPage ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent'}">
+                    <span class="font-bold text-lg">${item.label}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderServices() {
+            const container = document.getElementById('services-grid');
+            container.innerHTML = SERVICES.map(s => {
+                const isClickable = s.id === 'minecraft' || s.id === 'web-hosting' || s.id === 'bot-hosting';
+                return `
+                <div ${isClickable ? `onclick="navigate('${s.id}')"` : ''} class="bg-white dark:bg-gray-950 p-8 rounded-2xl border border-gray-200 dark:border-gray-800 transition shadow-sm group ${isClickable ? 'cursor-pointer hover:shadow-xl hover:border-orange-500/50 dark:hover:border-orange-500/50' : 'cursor-default'}">
+                    <div class="w-14 h-14 bg-orange-50 dark:bg-gray-900 rounded-xl flex items-center justify-center text-orange-500 mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="${s.icon}" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3 text-gray-900 dark:text-white flex items-center justify-between">
+                        ${s.title}
+                        ${isClickable ? '<i data-lucide="chevron-right" class="w-5 h-5 text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0"></i>' : ''}
+                    </h3>
+                    <p class="text-gray-600 dark:text-gray-400 text-base mb-6 leading-relaxed">${s.desc}</p>
+                    <div class="inline-block px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+                        ${s.status}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function renderBotPlans() {
+            const container = document.getElementById('bot-plans-grid');
+            container.innerHTML = BOT_PLANS.map(p => `
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:-translate-y-2 transition duration-300 flex flex-col shadow-sm hover:shadow-xl">
+                    <div class="h-1.5 w-full ${p.color}"></div>
+                    <div class="p-8 flex-1 flex flex-col">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${p.name}</h3>
+                        </div>
+                        <div class="mb-6 border-b border-gray-100 dark:border-gray-800 pb-6">
+                            <span class="text-4xl font-extrabold text-gray-900 dark:text-white">${p.price}</span>
+                            <span class="text-gray-500 text-sm">/month</span>
+                        </div>
+                        <div class="space-y-4 my-2 flex-1">
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="hard-drive" class="text-purple-400 dark:text-purple-500 w-[18px] h-[18px]"></i> ${p.ram}
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="cpu" class="text-purple-400 dark:text-purple-500 w-[18px] h-[18px]"></i> ${p.cpu}
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="server" class="text-purple-400 dark:text-purple-500 w-[18px] h-[18px]"></i> ${p.ssd}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderWebPlans() {
+            const container = document.getElementById('web-plans-grid');
+            container.innerHTML = WEB_PLANS.map(p => `
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:border-gray-300 dark:hover:border-gray-600 transition duration-300 flex flex-col shadow-sm hover:shadow-xl">
+                    <div class="h-1.5 w-full ${p.color}"></div>
+                    <div class="p-8 flex-1 flex flex-col relative z-10">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">${p.name}</h3>
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold border ${p.status === 'Available Now' ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 border-green-200 dark:border-green-500/20' : 'bg-orange-100 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-500/20'}">
+                                    ${p.status}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-3xl font-extrabold text-gray-900 dark:text-white">${p.price}</span>
+                                <span class="text-gray-500 text-sm block">/month</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-8 pb-6 border-b border-gray-100 dark:border-gray-800">${p.desc}</p>
+                        <div class="space-y-4 mb-8 flex-1">
+                            ${p.features.map(f => `
+                                <div class="flex items-start gap-3 text-gray-700 dark:text-gray-300">
+                                    <i data-lucide="check-circle-2" class="text-blue-500 shrink-0 mt-0.5 w-4 h-4"></i>
+                                    <span class="text-sm">${f}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-auto">
+                            <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="w-full block text-center py-3 px-4 text-white font-semibold rounded-lg transition ${p.status === 'Available Now' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'}">
+                                ${p.status === 'Available Now' ? 'Get Started' : 'Pre-order'}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMinecraftPlans() {
+            const container = document.getElementById('minecraft-plans-grid');
+            container.innerHTML = MINE_PLANS.map(p => `
+                <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden hover:-translate-y-2 transition duration-300 flex flex-col shadow-sm hover:shadow-xl">
+                    <div class="h-2 w-full ${p.color}"></div>
+                    <div class="p-8 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">${p.name}</h3>
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">${p.tag}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-3xl font-extrabold text-gray-900 dark:text-white">${p.price}</span>
+                                <span class="text-gray-500 text-sm block">/month</span>
+                            </div>
+                        </div>
+                        <div class="space-y-4 my-6 flex-1 bg-gray-50 dark:bg-gray-950/50 p-6 rounded-xl border border-gray-100 dark:border-gray-800">
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="hard-drive" class="text-gray-400 dark:text-gray-500 w-[18px] h-[18px]"></i> ${p.ram}
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="cpu" class="text-gray-400 dark:text-gray-500 w-[18px] h-[18px]"></i> ${p.cpu}
+                            </div>
+                            <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
+                                <i data-lucide="server" class="text-gray-400 dark:text-gray-500 w-[18px] h-[18px]"></i> ${p.ssd}
+                            </div>
+                        </div>
+                        <div class="pt-2 mt-auto">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 text-center italic">"${p.desc}"</p>
+                            <a href="https://dsc.gg/flamecloud" target="_blank" rel="noreferrer" class="w-full block text-center py-4 px-4 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 text-white font-bold rounded-xl transition shadow-md">
+                                Pre-order via Discord
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderInfrastructure() {
+            const container = document.getElementById('infra-grid');
+            container.innerHTML = INFRA_DATA.map(i => `
+                <div class="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                    <div class="relative h-64 w-full bg-gray-100 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
+                        <img src="${i.img}" alt="${i.title}" class="w-full h-full object-cover" />
+                        <div class="absolute top-4 right-4 bg-gray-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full border border-gray-700">
+                            ${i.status}
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">${i.title}</h3>
+                        <p class="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">${i.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFaq() {
+            const container = document.getElementById('faq-container');
+            container.innerHTML = FAQ_DATA.map((f, index) => `
+                <div class="faq-item bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <button onclick="toggleFaq(this)" class="w-full text-left px-6 py-5 flex items-center justify-between focus:outline-none">
+                        <span class="font-bold text-gray-900 dark:text-white text-lg">${f.q}</span>
+                        <i data-lucide="chevron-down" class="faq-icon text-gray-500 w-5 h-5"></i>
+                    </button>
+                    <div class="faq-content px-6">
+                        <p class="text-gray-600 dark:text-gray-400 font-medium leading-relaxed">${f.a}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Logic Functions ---
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            const menu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+
+            if (isMenuOpen) {
+                menu.classList.remove('hidden');
+                // slight delay for animation to kick in
+                setTimeout(() => {
+                    menu.classList.remove('opacity-0', '-translate-y-2');
+                    menu.classList.add('opacity-100', 'translate-y-0');
+                }, 10);
+                menuIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                menu.classList.remove('opacity-100', 'translate-y-0');
+                menu.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    menu.classList.add('hidden');
+                }, 300);
+                menuIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleFaq(button) {
+            const faqItem = button.parentElement;
+            
+            // Close other open faqs
+            document.querySelectorAll('.faq-item.active').forEach(item => {
+                if (item !== faqItem) {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Toggle current
+            faqItem.classList.toggle('active');
+        }
+
+        function navigate(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                currentPage = pageId;
+                
+                // Update nav menu active states
+                renderNavLinks();
+                
+                // Close menu if open
+                if (isMenuOpen) toggleMenu();
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // --- Initialization ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                // If user strongly prefers light, default to light
+                isDarkMode = false;
+                document.documentElement.classList.remove('dark');
+            }
+
+            // Render static dynamic content
+            renderServices();
+            renderBotPlans();
+            renderWebPlans();
+            renderMinecraftPlans();
+            renderInfrastructure();
+            renderFaq();
+            renderNavLinks();
+
+            // Set dynamic dates
+            const dateStr = new Date().toLocaleDateString();
+            document.getElementById('tos-date').innerText = dateStr;
+            document.getElementById('privacy-date').innerText = dateStr;
+            document.getElementById('current-year').innerText = new Date().getFullYear();
+
+            // Initialize Lucide Icons
+            lucide.createIcons();
+            
+            // Re-run icons for dynamic content rendering
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+        });
+
+    </script>
+</body>
+</html>    setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+        });
+
+    </script>
+</body>
+</html>
